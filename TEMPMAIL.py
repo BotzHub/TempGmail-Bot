@@ -5,6 +5,7 @@ import re  # Regex to validate Gmail format
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ConversationHandler
 from telegram.ext import ContextTypes
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Define states for the conversation
 GMAIL, METHOD = range(2)
@@ -63,11 +64,16 @@ def escape_markdown_v2(text: str) -> str:
 
 # Start command to welcome users
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("Developer", url="https://t.me/SmartEdith_Bot"), InlineKeyboardButton("Join Channel", url="https://t.me/Tech_Shreyansh")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
-        '🤖 Welcome! Bot Made By - <a href="https://t.me/SmartEdith_Bot">Shreyansh</a>\n'
+        '🤖 Welcome! Bot Made By - Shreyansh\n'
         "📄 Only Gmails Are Supported\n"
         "📝 Please Enter Your Gmail Address.",
-        parse_mode="HTML"
+        parse_mode="HTML",
+        reply_markup=reply_markup
     )
     return GMAIL  # Move to the next step
 
