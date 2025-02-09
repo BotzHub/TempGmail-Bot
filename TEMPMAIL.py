@@ -1,3 +1,4 @@
+import os
 import random
 import string
 import re  # Regex to validate Gmail format
@@ -134,7 +135,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Main function to run the bot
 def main():
-    token = "8014590673:AAGdinWh5KmdLYKvPb6Ix9dKm9kGvFbuzO8"  # Replace with your actual bot token
+    token = os.getenv("TELEGRAM_BOT_TOKEN")  # Fetch the bot token from environment variable
 
     # Create the application
     app = ApplicationBuilder().token(token).build()
