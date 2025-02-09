@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ConversationHandler
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+import time
 
 # Define states for the conversation
 GMAIL, METHOD = range(2)
@@ -65,7 +66,7 @@ def escape_markdown_v2(text: str) -> str:
 # Start command to welcome users
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"), InlineKeyboardButton("📢 Join Channel", url="https://t.me/Tech_Shreyansh")]
+        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"), InlineKeyboardButton("📢 Join Channel", url="https://t.me/YourChannelLink")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
@@ -139,6 +140,14 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Conversation cancelled.")
     return ConversationHandler.END  # End the conversation
 
+# Function to check bot speed
+async def speed(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    start_time = time.time()
+    await update.message.reply_text("Measuring speed...")
+    end_time = time.time()
+    response_time = end_time - start_time
+    await update.message.reply_text(f"Bot response time: {response_time:.4f} seconds")
+
 # Main function to run the bot
 def main():
     token = os.getenv("TELEGRAM_BOT_TOKEN")  # Fetch the bot token from environment variable
@@ -158,6 +167,10 @@ def main():
 
     # Add the conversation handler to the application
     app.add_handler(conv_handler)
+
+    # Add the speed command handler
+    speed_handler = CommandHandler("speed", speed)
+    app.add_handler(speed_handler)
 
     # Start the bot
     app.run_polling()
