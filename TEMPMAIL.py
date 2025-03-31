@@ -11,6 +11,10 @@ import time
 # Define states for the conversation
 GMAIL, METHOD = range(2)
 
+# Function to check if the bot is being used in a group
+async def is_group(update: Update):
+    return update.message.chat.type in ('group', 'supergroup')
+
 # Function to generate random name with 5 letters
 def generate_random_name(length=5):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
@@ -65,6 +69,18 @@ def escape_markdown_v2(text: str) -> str:
 
 # Start command to welcome users
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if the command is used in a group
+    if not await is_group(update):
+        keyboard = [
+            [InlineKeyboardButton("Join Our Group", url="https://t.me/MrGhostsx2")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            "❌ This bot is restricted to use in DMs. You can freely use it in our group @MrGhostsx2 or subscribe to use in DMs.",
+            reply_markup=reply_markup
+        )
+        return ConversationHandler.END
+    
     keyboard = [
         [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"), InlineKeyboardButton("📢 Join Channel", url="https://t.me/Tech_Shreyansh")]
     ]
@@ -80,6 +96,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Function to handle the Gmail input
 async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if the command is used in a group
+    if not await is_group(update):
+        await update.message.reply_text("❌ This bot is restricted to use in DMs. Please use it in our group @MrGhostsx2.")
+        return ConversationHandler.END
+        
     if not update.message or not update.message.text:  # Check if message exists
         return GMAIL  # Ignore invalid updates
 
@@ -101,6 +122,11 @@ async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Function to handle the method input and generate 50 variations
 async def handle_method(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if the command is used in a group
+    if not await is_group(update):
+        await update.message.reply_text("❌ This bot is restricted to use in DMs. Please use it in our group @MrGhostsx2.")
+        return ConversationHandler.END
+        
     if not update.message or not update.message.text:  # Check if message exists
         return METHOD  # Ignore invalid updates
 
@@ -142,6 +168,11 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Function to check bot speed
 async def speed(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if the command is used in a group
+    if not await is_group(update):
+        await update.message.reply_text("❌ This bot is restricted to use in DMs. Please use it in our group @MrGhostsx2.")
+        return
+        
     start_time = time.time()
     await update.message.reply_text("Measuring speed...")
     end_time = time.time()
