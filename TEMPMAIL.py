@@ -99,7 +99,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_member:
         keyboard = [
             [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
-            [InlineKeyboardButton("✅ I've Joined", callback_data="check_membership")]
+            [InlineKeyboardButton("🍀 I've Joined", callback_data="check_membership")]
         ]
         await update.message.reply_text(
             f"❌ To use this bot, you must join our group {GROUP_USERNAME} first.\n"
@@ -139,7 +139,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ]
             ]
             await query.edit_message_text(
-                "✅ Thanks for joining!\n"
+                "🍀 Thanks for joining!\n"
                 "🤖 Welcome to TempGmail Bot!\n"
                 "📄 Only Gmail addresses supported\n"
                 "📝 Please enter your Gmail address:",
@@ -149,7 +149,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             keyboard = [
                 [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
-                [InlineKeyboardButton("✅ I've Joined", callback_data="check_membership")]
+                [InlineKeyboardButton("🍀 I've Joined", callback_data="check_membership")]
             ]
             await query.edit_message_text(
                 f"❌ You haven't joined {GROUP_USERNAME} yet.\n"
@@ -165,7 +165,7 @@ async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not is_member:
             keyboard = [
                 [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
-                [InlineKeyboardButton("✅ I've Joined", callback_data="check_membership")]
+                [InlineKeyboardButton("🍀 I've Joined", callback_data="check_membership")]
             ]
             await update.message.reply_text(
                 f"❌ To continue using this bot, you must join our group {GROUP_USERNAME} first.\n"
@@ -182,7 +182,7 @@ async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     context.user_data['gmail'] = user_gmail
     await update.message.reply_text(
-        "✅ Gmail saved! Choose generation method:\n"
+        "🍀 Gmail saved! Choose generation method:\n"
         "1️⃣ Type 'dot' for dot variations\n"
         "2️⃣ Type '+' for random name variations\n"
         "3️⃣ /start to reselect Gmail"
@@ -196,7 +196,7 @@ async def handle_method(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not is_member:
             keyboard = [
                 [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
-                [InlineKeyboardButton("✅ I've Joined", callback_data="check_membership")]
+                [InlineKeyboardButton("🍀 I've Joined", callback_data="check_membership")]
             ]
             await update.message.reply_text(
                 f"❌ To continue using this bot, you must join our group {GROUP_USERNAME} first.\n"
@@ -238,7 +238,7 @@ async def speed_test(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def admin_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if user_id in ADMIN_IDS:
-        await update.message.reply_text("✅ You are an admin!")
+        await update.message.reply_text("🍀 You are an admin!")
     else:
         await update.message.reply_text("❌ You are not an admin.")
 
