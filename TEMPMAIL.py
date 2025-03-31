@@ -9,8 +9,8 @@ from telegram.ext import (
     CommandHandler,
     MessageHandler,
     filters,
-    ConversationHandler,
-    ContextTypes
+    ContextTypes,
+    CallbackQueryHandler
 )
 
 # Conversation states
@@ -20,13 +20,23 @@ GMAIL, METHOD = range(2)
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 ALLOWED_GROUP_ID = int(os.getenv("ALLOWED_GROUP_ID", "-1002512312056"))
 GROUP_USERNAME = os.getenv("GROUP_USERNAME", "@MrGhostsx")
+GROUP_LINK = f"https://t.me/{GROUP_USERNAME[1:]}" if GROUP_USERNAME.startswith('@') else GROUP_USERNAME
 ADMIN_IDS = [int(id.strip()) for id in os.getenv("ADMIN_IDS", "").split(",") if id.strip()]
 
-def is_authorized(update: Update) -> bool:
-    """Check if user is admin or in allowed group"""
+async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Check if user is a member of the required group"""
     user_id = update.effective_user.id
-    chat_id = update.effective_chat.id
-    return user_id in ADMIN_IDS or chat_id == ALLOWED_GROUP_ID
+    try:
+        member = await context.bot.get_chat_member(ALLOWED_GROUP_ID, user_id)
+        return member.status in ['member', 'administrator', 'creator']
+    except Exception as e:
+        print(f"Error checking membership: {e}")
+        return False
+
+def is_authorized(update: Update) -> bool:
+    """Check if user is admin"""
+    user_id = update.effective_user.id
+    return user_id in ADMIN_IDS
 
 def generate_random_name(length=5):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
@@ -65,14 +75,39 @@ def generate_plus_variations(gmail: str, count=50):
     return list(variations)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_authorized(update):
-        keyboard = [[InlineKeyboardButton("☘ Join Group", url=f"https://t.me/{GROUP_USERNAME[1:]}")]]
+    # Check if user is admin (admins bypass membership check)
+    if is_authorized(update):
+        keyboard = [
+            [
+                InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"),
+                InlineKeyboardButton("📢 Channel", url="https://t.me/Tech_Shreyansh")
+            ]
+        ]
         await update.message.reply_text(
-            f"❌ This bot is restricted to use in DMs. You can freely use it in our group {GROUP_USERNAME} or subscribe to use in DMs.",
+            "🤖 Welcome to TempGmail Bot!\n"
+            "📄 Only Gmail addresses supported\n"
+            "📝 Please enter your Gmail address:",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="HTML"
+        )
+        return GMAIL
+    
+    # For regular users, check membership
+    is_member = await check_membership(update, context)
+    
+    if not is_member:
+        keyboard = [
+            [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
+            [InlineKeyboardButton("✅ I've Joined", callback_data="check_membership")]
+        ]
+        await update.message.reply_text(
+            f"❌ To use this bot, you must join our group {GROUP_USERNAME} first.\n"
+            "Please join the group and then click 'I've Joined' button.",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
         return ConversationHandler.END
     
+    # User is member, proceed
     keyboard = [
         [
             InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"),
@@ -88,12 +123,55 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return GMAIL
 
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    if query.data == "check_membership":
+        is_member = await check_membership(update, context)
+        
+        if is_member:
+            keyboard = [
+                [
+                    InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"),
+                    InlineKeyboardButton("📢 Channel", url="https://t.me/Tech_Shreyansh")
+                ]
+            ]
+            await query.edit_message_text(
+                "✅ Thanks for joining!\n"
+                "🤖 Welcome to TempGmail Bot!\n"
+                "📄 Only Gmail addresses supported\n"
+                "📝 Please enter your Gmail address:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+            return GMAIL
+        else:
+            keyboard = [
+                [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
+                [InlineKeyboardButton("✅ I've Joined", callback_data="check_membership")]
+            ]
+            await query.edit_message_text(
+                f"❌ You haven't joined {GROUP_USERNAME} yet.\n"
+                "Please join the group and then click 'I've Joined' button.",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+            return ConversationHandler.END
+
 async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check membership for regular users (admins bypass)
     if not is_authorized(update):
-        await update.message.reply_text(
-            f"❌ This bot is restricted to use in DMs. You can freely use it in our group {GROUP_USERNAME} or subscribe to use in DMs."
-        )
-        return ConversationHandler.END
+        is_member = await check_membership(update, context)
+        if not is_member:
+            keyboard = [
+                [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
+                [InlineKeyboardButton("✅ I've Joined", callback_data="check_membership")]
+            ]
+            await update.message.reply_text(
+                f"❌ To continue using this bot, you must join our group {GROUP_USERNAME} first.\n"
+                "Please join the group and then click 'I've Joined' button.",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+            return ConversationHandler.END
     
     user_gmail = update.message.text.strip()
     
@@ -111,11 +189,20 @@ async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return METHOD
 
 async def handle_method(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check membership for regular users (admins bypass)
     if not is_authorized(update):
-        await update.message.reply_text(
-            f"❌ This bot is restricted to use in DMs. You can freely use it in our group {GROUP_USERNAME} or subscribe to use in DMs."
-        )
-        return ConversationHandler.END
+        is_member = await check_membership(update, context)
+        if not is_member:
+            keyboard = [
+                [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
+                [InlineKeyboardButton("✅ I've Joined", callback_data="check_membership")]
+            ]
+            await update.message.reply_text(
+                f"❌ To continue using this bot, you must join our group {GROUP_USERNAME} first.\n"
+                "Please join the group and then click 'I've Joined' button.",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+            return ConversationHandler.END
     
     method = update.message.text.lower().strip()
     
@@ -166,10 +253,12 @@ def main():
             GMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_gmail)],
             METHOD: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_method)],
         },
-        fallbacks=[CommandHandler("cancel", cancel)]
+        fallbacks=[CommandHandler("cancel", cancel)],
+        allow_reentry=True
     )
 
     app.add_handler(conv_handler)
+    app.add_handler(CallbackQueryHandler(handle_callback))
     app.add_handler(CommandHandler("speed", speed_test))
     app.add_handler(CommandHandler("admin", admin_check))
     
