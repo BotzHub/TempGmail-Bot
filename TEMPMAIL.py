@@ -18,8 +18,8 @@ GMAIL, METHOD = range(2)
 
 # Configuration from environment variables
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-ALLOWED_GROUP_ID = int(os.getenv("ALLOWED_GROUP_ID", "-1001234567890"))
-GROUP_USERNAME = os.getenv("GROUP_USERNAME", "@deepcaarderschat")
+ALLOWED_GROUP_ID = int(os.getenv("ALLOWED_GROUP_ID", "-1002512312056"))
+GROUP_USERNAME = os.getenv("GROUP_USERNAME", "@MrGhostsx")
 ADMIN_IDS = [int(id.strip()) for id in os.getenv("ADMIN_IDS", "").split(",") if id.strip()]
 
 def is_authorized(update: Update) -> bool:
