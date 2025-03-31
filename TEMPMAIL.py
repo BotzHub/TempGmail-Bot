@@ -66,7 +66,7 @@ def generate_plus_variations(gmail: str, count=50):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
-        keyboard = [[InlineKeyboardButton("Join Group", url=f"https://t.me/{GROUP_USERNAME[1:]}")]]
+        keyboard = [[InlineKeyboardButton("☘ Join Group", url=f"https://t.me/{GROUP_USERNAME[1:]}")]]
         await update.message.reply_text(
             f"❌ This bot is restricted to use in DMs. You can freely use it in our group {GROUP_USERNAME} or subscribe to use in DMs.",
             reply_markup=InlineKeyboardMarkup(keyboard)
