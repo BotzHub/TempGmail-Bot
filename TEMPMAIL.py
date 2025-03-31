@@ -68,7 +68,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         keyboard = [[InlineKeyboardButton("Join Group", url=f"https://t.me/{GROUP_USERNAME[1:]}")]]
         await update.message.reply_text(
-            f"❌ This bot is restricted. Use it in {GROUP_USERNAME} or contact admin.",
+            f"❌ This bot is restricted to use in DMs. You can freely use it in our group {GROUP_USERNAME} or subscribe to use in DMs.",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
         return ConversationHandler.END
@@ -91,7 +91,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         await update.message.reply_text(
-            f"❌ This bot is restricted. Use it in {GROUP_USERNAME} or contact admin."
+            f"❌ This bot is restricted to use in DMs. You can freely use it in our group {GROUP_USERNAME} or subscribe to use in DMs."
         )
         return ConversationHandler.END
     
@@ -113,7 +113,7 @@ async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_method(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update):
         await update.message.reply_text(
-            f"❌ This bot is restricted. Use it in {GROUP_USERNAME} or contact admin."
+            f"❌ This bot is restricted to use in DMs. You can freely use it in our group {GROUP_USERNAME} or subscribe to use in DMs."
         )
         return ConversationHandler.END
     
