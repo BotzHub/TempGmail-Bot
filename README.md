@@ -20,7 +20,10 @@ This guide will walk you through setting up your Telegram bot on Koyeb.
 1. Add your bot code (the Python script) to your repository.
 2. Create a `.env` file in the root directory of your repository and add your bot token:
     ```env
-    TELEGRAM_BOT_TOKEN=your_bot_token_here
+    TELEGRAM_BOT_TOKEN=your_bot_token
+    ALLOWED_GROUP_ID=-1001234567890
+    GROUP_USERNAME=@deepcaarderschat
+    ADMIN_IDS=123456789,987654321  # Comma-separated admin IDs
     ```
 3. Commit and push the changes to your GitHub repository.
 
