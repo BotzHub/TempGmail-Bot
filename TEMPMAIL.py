@@ -81,7 +81,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [
             [
                 InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"),
-                InlineKeyboardButton("📢 Channel", url="https://t.me/Tech_Shreyansh")
+                InlineKeyboardButton("📢 Channel", url="https://t.me/Tech_Shreyansh1")
             ]
         ]
         await update.message.reply_text(
