@@ -81,7 +81,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [
             [
                 InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"),
-                InlineKeyboardButton("📢 Channel", url="https://t.me/Tech_Shreyansh1")
+                InlineKeyboardButton("📢 Channel", url="https://t.me/Tech_Shreyansh")
             ]
         ]
         await update.message.reply_text(
@@ -138,24 +138,38 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     InlineKeyboardButton("📢 Channel", url="https://t.me/Tech_Shreyansh")
                 ]
             ]
-            await query.edit_message_text(
-                "🍀 Thanks for joining!\n"
-                "🤖 Welcome to TempGmail Bot!\n"
-                "📄 Only Gmail addresses supported\n"
-                "📝 Please enter your Gmail address:",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
+            try:
+                await query.edit_message_text(
+                    "🍀 Thanks for joining!\n"
+                    "🤖 Welcome to TempGmail Bot!\n"
+                    "📄 Only Gmail addresses supported\n"
+                    "📝 Please enter your Gmail address:",
+                    reply_markup=InlineKeyboardMarkup(keyboard)
+                )
+            except Exception as e:
+                print(f"Error editing message: {e}")
+                await context.bot.send_message(
+                    chat_id=query.message.chat_id,
+                    text="🍀 Thanks for joining!\n"
+                         "🤖 Welcome to TempGmail Bot!\n"
+                         "📄 Only Gmail addresses supported\n"
+                         "📝 Please enter your Gmail address:",
+                    reply_markup=InlineKeyboardMarkup(keyboard)
+                )
             return GMAIL
         else:
             keyboard = [
                 [InlineKeyboardButton("☘ Join Group", url=GROUP_LINK)],
                 [InlineKeyboardButton("🍀 I've Joined", callback_data="check_membership")]
             ]
-            await query.edit_message_text(
-                f"❌ You haven't joined {GROUP_USERNAME} yet.\n"
-                "Please join the group and then click 'I've Joined' button.",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
+            try:
+                await query.edit_message_text(
+                    f"❌ You haven't joined {GROUP_USERNAME} yet.\n"
+                    "Please join the group and then click 'I've Joined' button.",
+                    reply_markup=InlineKeyboardMarkup(keyboard)
+                )
+            except Exception as e:
+                print(f"Error editing message: {e}")
             return ConversationHandler.END
 
 async def handle_gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -233,7 +247,11 @@ async def speed_test(update: Update, context: ContextTypes.DEFAULT_TYPE):
     start_time = time.time()
     msg = await update.message.reply_text("⏱ Testing speed...")
     end_time = time.time()
-    await msg.edit_text(f"⚡ Bot response time: {end_time - start_time:.3f} seconds")
+    elapsed = end_time - start_time
+    try:
+        await msg.edit_text(f"⚡ Bot response time: {elapsed:.3f} seconds")
+    except Exception as e:
+        print(f"Error editing speed test message: {e}")
 
 async def admin_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
