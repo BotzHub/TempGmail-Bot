@@ -66,7 +66,7 @@ def escape_markdown_v2(text: str) -> str:
 # Start command to welcome users
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"), InlineKeyboardButton("📢 Join Channel", url="https://t.me/Tech_Shreyansh")]
+        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/SmartEdith_Bot"), InlineKeyboardButton("📢 Join Channel", url="https://t.me/Tech_Shreyansh1")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
