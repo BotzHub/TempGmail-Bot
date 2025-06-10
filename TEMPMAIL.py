@@ -19,7 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Bot configuration
-TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'  # Replace with your actual token
+TOKEN = '8145714862:AAHJobXXT_M7QdT5Hi4y1jof31Sj5ojw_cc'  # Replace with your actual token
 DOWNLOAD_FOLDER = 'downloads'
 MAX_FILE_SIZE = 2000 * 1024 * 1024  # 2GB limit
 
