@@ -1,2 +1,7 @@
 python-telegram-bot
-
+Flask
+gunicorn
+aiohttp
+Jinja2
+werkzeug
+itsdangerous
