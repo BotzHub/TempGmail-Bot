@@ -1,7 +1,8 @@
 import os
 import logging
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext
+from telegram.ext import filters  # Updated import for Filters
 from mega import Mega
 
 # Configure logging
@@ -105,7 +106,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("help", help_command))
 
     # on non command i.e message - check for MEGA links
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, download_mega_file))
+    dispatcher.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download_mega_file))
 
     # Start the Bot
     updater.start_polling()
