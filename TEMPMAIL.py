@@ -1,135 +1,135 @@
 import os
 import logging
-import re
-from telegram import Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    ContextTypes,
-    filters
-)
-from mega import Mega
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
 # Bot configuration
-TOKEN = '8145714862:AAHJobXXT_M7QdT5Hi4y1jof31Sj5ojw_cc'  # Replace with your actual token
-DOWNLOAD_FOLDER = 'downloads'
-MAX_FILE_SIZE = 2000 * 1024 * 1024  # 2GB limit
+API_ID = int(os.environ.get("API_ID"))
+API_HASH = os.environ.get("API_HASH")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+REQUEST_CHANNEL = int(os.environ.get("REQUEST_CHANNEL", "-1001234567890"))  # Channel where requests will be forwarded
+ADMIN_ID = int(os.environ.get("ADMIN_ID", "123456789"))  # Your Telegram ID
 
-# Create download folder if it doesn't exist
-if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+# Initialize the bot
+app = Client(
+    "RequestPickerBot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
 
-def extract_mega_info(url: str) -> tuple:
-    """Extract file ID and key from MEGA URL"""
-    pattern = r'mega(?:\.co)?\.nz/(?:file|folder)/([^#]+)#([^#]+)'
-    match = re.search(pattern, url)
-    if match:
-        return match.group(1), match.group(2)
-    return None, None
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message when the command /start is issued."""
-    user = update.effective_user
-    await update.message.reply_markdown_v2(
-        fr'Hi {user.mention_markdown_v2()}\! '
-        'Send me a MEGA\.nz link and I\'ll download it for you\.'
+# Start command handler
+@app.on_message(filters.command("start"))
+async def start(client, message):
+    await message.reply_text(
+        f"Hello ⏤‌‌•Ｓ𝙷𝚁𝙴𝚈𝙰𝙽𝚂𝙷 〄! 👋\n\n"
+        f"I'm a Request Picker Bot. You can make requests in our group using:\n"
+        f"/r Movie/Show Name YYYY or\n"
+        f"/request Movie/Show Name YYYY\n\n"
+        f"You'll receive notifications here when your requests are processed.",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("Support Group", url="https://t.me/yourgroup")]
+        ])
     )
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message when the command /help is issued."""
-    await update.message.reply_text(
-        'Just send me a MEGA.nz file or folder link and I\'ll download it for you.\n\n'
-        'Commands:\n'
-        '/start - Start the bot\n'
-        '/help - Show this help message\n\n'
-        'Note: There is a 2GB file size limit.\n'
-        'Links should be in format: https://mega.nz/file/ID#KEY'
-    )
-
-async def download_mega_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Download a file from MEGA.nz."""
-    message = update.message
-    url = message.text
-    
-    # Check if the message contains a MEGA URL
-    if 'mega.nz' not in url.lower() and 'mega.co.nz' not in url.lower():
-        await message.reply_text("Please send a valid MEGA.nz URL in format: https://mega.nz/file/ID#KEY")
-        return
-    
+# Request command handler
+@app.on_message(filters.command(["r", "request"]))
+async def handle_request(client, message):
     try:
-        # Extract file ID and key from URL
-        file_id, file_key = extract_mega_info(url)
-        if not file_id or not file_key:
-            await message.reply_text("Invalid MEGA.nz URL format. Please use format: https://mega.nz/file/ID#KEY")
-            return
-
-        # Inform user that download is starting
-        progress_msg = await message.reply_text("Starting download...")
-        
-        # Initialize MEGA client
-        mega = Mega()
-        
-        # Get public file info using both ID and key
-        file_info = mega.get_public_file_info(url, file_key)
-        if not file_info:
-            await progress_msg.edit_text("Failed to get file information. Please check the URL.")
+        # Extract the request text
+        if len(message.command) < 2:
+            await message.reply_text("Please provide the name of the movie/show you're requesting.")
             return
             
-        file_name = file_info['name']
-        file_size = file_info['size']
+        request_text = " ".join(message.command[1:])
+        user = message.from_user
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # Check file size limit
-        if file_size > MAX_FILE_SIZE:
-            await progress_msg.edit_text(f"File is too large ({file_size/1024/1024:.2f} MB). Max allowed is {MAX_FILE_SIZE/1024/1024:.2f} MB.")
-            return
+        # Format the request message
+        request_msg = (
+            f"📌 **New Request**\n\n"
+            f"🎬 **Title:** {request_text}\n"
+            f"👤 **User:** {user.mention}\n"
+            f"🆔 **User ID:** `{user.id}`\n"
+            f"⏰ **Time:** {timestamp}\n\n"
+            f"#Request"
+        )
         
-        # Update progress message
-        await progress_msg.edit_text(f"Downloading {file_name} ({file_size/1024/1024:.2f} MB)...")
+        # Create buttons for admin actions
+        buttons = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("✅ Request Received", callback_data=f"req_received:{user.id}:{request_text}"),
+                InlineKeyboardButton("✅ Upload Done", callback_data=f"req_uploaded:{user.id}:{request_text}")
+            ],
+            [
+                InlineKeyboardButton("⚠️ Already Available", callback_data=f"req_available:{user.id}:{request_text}"),
+                InlineKeyboardButton("❌ Reject Request", callback_data=f"req_rejected:{user.id}:{request_text}")
+            ]
+        ])
         
-        # Download the file
-        downloaded_file = mega.download_url(url, DOWNLOAD_FOLDER, file_key)
+        # Forward the request to the channel
+        await client.send_message(
+            chat_id=REQUEST_CHANNEL,
+            text=request_msg,
+            reply_markup=buttons
+        )
         
-        # Send the file to user
-        with open(downloaded_file, 'rb') as f:
-            await context.bot.send_document(
-                chat_id=message.chat_id,
-                document=f,
-                filename=file_name,
-                caption=f"Here's your file: {file_name}"
-            )
-        
-        # Clean up
-        os.remove(downloaded_file)
-        await progress_msg.delete()
+        # Confirm to the user
+        await message.reply_text(
+            f"✅ Your request for **{request_text}** has been submitted!\n\n"
+            f"You'll be notified here when it's processed.",
+            reply_to_message_id=message.id
+        )
         
     except Exception as e:
-        logger.error(f"Error downloading file: {e}")
-        await message.reply_text(f"Failed to download file. Error: {str(e)}")
-        try:
-            await progress_msg.delete()
-        except:
-            pass
+        logger.error(f"Error handling request: {e}")
+        await message.reply_text("An error occurred while processing your request. Please try again.")
 
-def main() -> None:
-    """Start the bot."""
-    # Create the Application and pass it your bot's token.
-    application = ApplicationBuilder().token(TOKEN).build()
+# Callback query handler
+@app.on_callback_query()
+async def handle_callback(client, callback_query):
+    try:
+        data = callback_query.data
+        action, user_id, request_text = data.split(":")
+        user_id = int(user_id)
+        
+        # Define responses for different actions
+        responses = {
+            "req_received": f"📥 Your request for **{request_text}** has been received and will be processed soon!",
+            "req_uploaded": f"🎉 Good news! Your requested content **{request_text}** is now available!",
+            "req_available": f"ℹ️ Your requested content **{request_text}** is already available in our database!",
+            "req_rejected": f"❌ Sorry, your request for **{request_text}** couldn't be fulfilled at this time."
+        }
+        
+        # Send notification to user
+        await client.send_message(
+            chat_id=user_id,
+            text=responses.get(action, "Your request status has been updated.")
+        )
+        
+        # Update the original message in the channel
+        await callback_query.message.edit_text(
+            f"{callback_query.message.text}\n\n"
+            f"🔄 **Status:** {action.replace('_', ' ').title()}",
+            reply_markup=None
+        )
+        
+        # Answer the callback query
+        await callback_query.answer(f"User notified about {action.replace('_', ' ')}")
+        
+    except Exception as e:
+        logger.error(f"Error handling callback: {e}")
+        await callback_query.answer("An error occurred while processing this action.")
 
-    # Register handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download_mega_file))
-
-    # Run the bot until the user presses Ctrl-C
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()
+# Start the bot
+if __name__ == "__main__":
+    logger.info("Starting Request Picker Bot...")
+    app.run()
