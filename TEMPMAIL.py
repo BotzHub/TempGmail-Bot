@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-REQUEST_CHANNEL = os.environ.get("REQUEST_CHANNEL", "-1001234567890")  # Channel where requests will be forwarded
+REQUEST_CHANNEL = os.environ.get("REQUEST_CHANNEL")  # Remove default value to ensure proper setup
 ADMIN_ID = int(os.environ.get("ADMIN_ID", "123456789"))  # Your Telegram ID
 
 # Initialize the bot
@@ -44,6 +44,15 @@ async def start(client, message):
 @app.on_message(filters.command(["r", "request"]))
 async def handle_request(client, message):
     try:
+        # Check if REQUEST_CHANNEL is properly set
+        if not REQUEST_CHANNEL:
+            await message.reply_text("⚠️ Bot configuration error. Admin has been notified.")
+            await client.send_message(
+                chat_id=ADMIN_ID,
+                text="❌ ERROR: REQUEST_CHANNEL environment variable is not set!"
+            )
+            return
+            
         # Extract the request text
         if len(message.command) < 2:
             await message.reply_text("Please provide the name of the movie/show you're requesting.")
@@ -82,24 +91,30 @@ async def handle_request(client, message):
                 text=request_msg,
                 reply_markup=buttons
             )
+            
+            # Confirm to the user
+            await message.reply_text(
+                f"✅ Your request for **{request_text}** has been submitted!\n\n"
+                f"You'll be notified here when it's processed.",
+                reply_to_message_id=message.id
+            )
+            
         except Exception as channel_error:
             logger.error(f"Channel access error: {channel_error}")
-            # If private channel access fails, notify admin
+            # Notify admin about the error
             await client.send_message(
                 chat_id=ADMIN_ID,
-                text=f"⚠️ Bot failed to access request channel {REQUEST_CHANNEL}. Error: {channel_error}"
+                text=f"❌ BOT ERROR when accessing channel:\n"
+                     f"Error: {channel_error}\n"
+                     f"Channel ID: {REQUEST_CHANNEL}\n"
+                     f"Please ensure:\n"
+                     f"1. Bot is added to the channel\n"
+                     f"2. Channel ID is correct\n"
+                     f"3. Bot has admin rights in channel"
             )
             await message.reply_text(
                 "⚠️ Our system is currently experiencing issues. The admin has been notified."
             )
-            return
-        
-        # Confirm to the user
-        await message.reply_text(
-            f"✅ Your request for **{request_text}** has been submitted!\n\n"
-            f"You'll be notified here when it's processed.",
-            reply_to_message_id=message.id
-        )
         
     except Exception as e:
         logger.error(f"Error handling request: {e}")
